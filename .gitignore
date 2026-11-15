@@ -3,3 +3,5 @@ __pycache__/
 .pytest_cache/
 reports/
 .env
+ansible/.vault_pass
+*.retry

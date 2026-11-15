@@ -1,0 +1,27 @@
+# Jenkins Configuration as Code : géré par Ansible, ne pas modifier à la main.
+# Les secrets arrivent par variables d'environnement (fichier .env, droits 0600).
+jenkins:
+  systemMessage: "Jenkins configuré par Ansible (provision.yml)"
+  numExecutors: 2
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "admin"
+          password: "${JENKINS_ADMIN_PASSWORD}"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword:
+              scope: GLOBAL
+              id: "registry-credentials"
+              username: "${REGISTRY_USERNAME}"
+              password: "${REGISTRY_TOKEN}"
+              description: "Compte du registre Docker Hub"
+unclassified:
+  location:
+    url: "http://localhost:8080/"
