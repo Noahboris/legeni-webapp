@@ -1,0 +1,90 @@
+
+PLAY [Provisionner la machine CI/CD] *******************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [Vérifier le système et les secrets] **************************************
+ok: [localhost]
+
+TASK [docker : Installer les prérequis] ****************************************
+ok: [localhost]
+
+TASK [docker : Créer le dossier des clés APT] **********************************
+ok: [localhost]
+
+TASK [docker : Télécharger la clé GPG de Docker] *******************************
+ok: [localhost]
+
+TASK [docker : Ajouter le dépôt Docker] ****************************************
+ok: [localhost]
+
+TASK [docker : Installer Docker] ***********************************************
+ok: [localhost]
+
+TASK [docker : Démarrer Docker] ************************************************
+ok: [localhost]
+
+TASK [docker : Autoriser les utilisateurs à utiliser Docker] *******************
+ok: [localhost] => (item=user)
+
+TASK [jenkins : Créer le dossier d'installation de Jenkins] ********************
+ok: [localhost]
+
+TASK [jenkins : Copier les fichiers de l'image Jenkins] ************************
+ok: [localhost] => (item=Dockerfile)
+ok: [localhost] => (item=plugins.txt)
+ok: [localhost] => (item=jenkins.yaml)
+
+TASK [jenkins : Lire le GID du groupe docker] **********************************
+ok: [localhost]
+
+TASK [jenkins : Écrire le fichier compose] *************************************
+ok: [localhost]
+
+TASK [jenkins : Écrire le fichier .env (secrets, lisible par root seulement)] ***
+ok: [localhost]
+
+TASK [jenkins : Construire l'image si les fichiers ont changé] *****************
+skipping: [localhost]
+
+TASK [jenkins : Démarrer Jenkins] **********************************************
+ok: [localhost]
+
+TASK [jenkins : Attendre que Jenkins réponde] **********************************
+ok: [localhost]
+
+TASK [minikube : Installer minikube] *******************************************
+ok: [localhost]
+
+TASK [minikube : Installer kubectl (version épinglée, somme de contrôle vérifiée)] ***
+ok: [localhost]
+
+TASK [minikube : Vérifier l'état de minikube] **********************************
+ok: [localhost]
+
+TASK [minikube : Démarrer minikube] ********************************************
+skipping: [localhost]
+
+TASK [minikube : Lister les addons] ********************************************
+ok: [localhost]
+
+TASK [minikube : Activer les addons] *******************************************
+skipping: [localhost] => (item=metrics-server) 
+skipping: [localhost] => (item=ingress) 
+skipping: [localhost]
+
+TASK [minikube : Vérifier que le nœud est prêt] ********************************
+ok: [localhost]
+
+TASK [minikube : Afficher les nœuds] *******************************************
+ok: [localhost] => {
+    "minikube_nodes.stdout_lines": [
+        "NAME       STATUS   ROLES           AGE     VERSION",
+        "minikube   Ready    control-plane   2m48s   v1.33.0"
+    ]
+}
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=22   changed=0    unreachable=0    failed=0    skipped=3    rescued=0    ignored=0   
+

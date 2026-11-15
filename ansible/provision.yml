@@ -1,0 +1,32 @@
+---
+# Provisionne une machine vierge : Docker + Jenkins (image du TP 3.1) + Minikube.
+# Usage : cd ansible && ansible-playbook provision.yml --ask-become-pass
+- name: Provisionner la machine CI/CD
+  hosts: cible
+  become: true
+  vars:
+    # Utilisateur non-root qui utilisera docker, minikube et kubectl
+    target_user: "{{ lookup('env', 'USER') }}"
+  vars_files:
+    - vars/vault.yml
+
+  pre_tasks:
+    - name: Vérifier le système et les secrets
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['distribution'] == 'Ubuntu'
+          - target_user != 'root'
+          - vault_jenkins_admin_password | length >= 12
+        fail_msg: >-
+          Pré-requis non respectés : Ubuntu uniquement, ne pas lancer en root,
+          mot de passe Jenkins d'au moins 12 caractères dans vars/vault.yml.
+        quiet: true
+      no_log: true
+
+  roles:
+    - role: docker
+      tags: [docker]
+    - role: jenkins
+      tags: [jenkins]
+    - role: minikube
+      tags: [minikube]

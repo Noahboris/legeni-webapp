@@ -1,0 +1,50 @@
+---
+- name: Installer minikube
+  ansible.builtin.get_url:
+    url: "https://storage.googleapis.com/minikube/releases/{{ minikube_version }}/minikube-linux-amd64"
+    dest: /usr/local/bin/minikube
+    mode: "0755"
+
+- name: Installer kubectl (version épinglée, somme de contrôle vérifiée)
+  ansible.builtin.get_url:
+    url: "https://dl.k8s.io/release/{{ kubectl_version }}/bin/linux/amd64/kubectl"
+    dest: /usr/local/bin/kubectl
+    mode: "0755"
+    checksum: "sha256:https://dl.k8s.io/release/{{ kubectl_version }}/bin/linux/amd64/kubectl.sha256"
+
+# minikube refuse de tourner en root avec le driver docker : on le lance en tant que minikube_user.
+# Les tâches s'exécutent en root, qui appelle "sudo -u <utilisateur> -g docker" : le groupe docker
+# est forcé, car il vient d'être ajouté et la session Ansible en cours ne le connaît pas encore.
+- name: Vérifier l'état de minikube
+  ansible.builtin.command: "{{ minikube_as_user }} minikube status"
+  register: minikube_status
+  failed_when: false
+  changed_when: false
+
+- name: Démarrer minikube
+  ansible.builtin.command: >-
+    {{ minikube_as_user }} minikube start --driver=docker
+    --cpus={{ minikube_cpus }} --memory={{ minikube_memory }}
+    --kubernetes-version={{ minikube_k8s_version }}
+  when: minikube_status.rc != 0
+  changed_when: true
+
+- name: Lister les addons
+  ansible.builtin.command: "{{ minikube_as_user }} minikube addons list -o json"
+  register: minikube_addons_state
+  changed_when: false
+
+- name: Activer les addons
+  ansible.builtin.command: "{{ minikube_as_user }} minikube addons enable {{ item }}"
+  loop: "{{ minikube_addons }}"
+  when: (minikube_addons_state.stdout | from_json)[item].Status | default('') is not match('enabled')
+  changed_when: true
+
+- name: Vérifier que le nœud est prêt
+  ansible.builtin.command: "{{ minikube_as_user }} kubectl get nodes"
+  register: minikube_nodes
+  changed_when: false
+
+- name: Afficher les nœuds
+  ansible.builtin.debug:
+    var: minikube_nodes.stdout_lines

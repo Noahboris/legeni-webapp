@@ -1,0 +1,8 @@
+---
+jenkins_dir: /opt/jenkins
+jenkins_image: "{{ vault_registry_username }}/jenkins:lts"
+jenkins_port: 8080
+# Secrets : définis dans vars/vault.yml (chiffré avec Ansible Vault)
+jenkins_admin_password: "{{ vault_jenkins_admin_password }}"
+jenkins_registry_username: "{{ vault_registry_username }}"
+jenkins_registry_token: "{{ vault_registry_token }}"

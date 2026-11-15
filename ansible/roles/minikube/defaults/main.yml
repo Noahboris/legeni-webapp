@@ -1,0 +1,12 @@
+---
+minikube_version: latest
+kubectl_version: v1.33.0
+minikube_k8s_version: "{{ kubectl_version }}"
+minikube_cpus: 4
+minikube_memory: 6144
+minikube_addons:
+  - metrics-server
+  - ingress
+minikube_user: "{{ target_user }}"
+# Préfixe pour exécuter une commande en tant que minikube_user avec le groupe docker
+minikube_as_user: "sudo -H -u {{ minikube_user }} -g docker"
