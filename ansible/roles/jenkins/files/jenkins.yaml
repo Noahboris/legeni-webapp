@@ -22,6 +22,12 @@ credentials:
               username: "${REGISTRY_USERNAME}"
               password: "${REGISTRY_TOKEN}"
               description: "Compte du registre Docker Hub"
+          - usernamePassword:
+              scope: GLOBAL
+              id: "github-token"
+              username: "${GITHUB_USERNAME}"
+              password: "${GITHUB_TOKEN}"
+              description: "GitHub : lecture du dépôt et statuts de commit"
 unclassified:
   location:
     url: "http://localhost:8080/"

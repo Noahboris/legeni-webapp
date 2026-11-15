@@ -16,10 +16,32 @@ services:
       - JENKINS_ADMIN_PASSWORD=${JENKINS_ADMIN_PASSWORD}
       - REGISTRY_USERNAME=${REGISTRY_USERNAME}
       - REGISTRY_TOKEN=${REGISTRY_TOKEN}
+      - GITHUB_USERNAME=${GITHUB_USERNAME}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
     volumes:
       - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
       - ./jenkins.yaml:/var/jenkins_casc/jenkins.yaml:ro
+    networks:
+      - default
+      # réseau de Minikube : Jenkins peut joindre l'API Kubernetes (192.168.49.2:8443)
+      - minikube
+
+  # Relais de webhooks : GitHub -> smee.io -> ce conteneur -> Jenkins (aucune ouverture de port)
+  smee:
+    image: node:22-alpine
+    container_name: smee
+    restart: unless-stopped
+    environment:
+      - SMEE_URL=${SMEE_URL}
+    command: >-
+      sh -c 'npx --yes smee-client@3 --url "$$SMEE_URL" --target http://jenkins:8080/github-webhook/'
+    depends_on:
+      - jenkins
 
 volumes:
   jenkins_home:
+
+networks:
+  minikube:
+    external: true
