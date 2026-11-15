@@ -1,0 +1,43 @@
+
+PLAY [Déploiement Kubernetes de legeni-webapp] *********************************
+
+TASK [Vérifier les paramètres] *************************************************
+ok: [localhost]
+
+TASK [Charger les variables de l'environnement et les secrets] *****************
+ok: [localhost] => (item=None)
+ok: [localhost] => (item=None)
+ok: [localhost]
+
+TASK [Vérifier le mot de passe Redis du coffre] ********************************
+ok: [localhost]
+
+TASK [Chercher un déploiement existant (pour savoir si un rollback est possible)] ***
+ok: [localhost]
+
+TASK [Créer le namespace] ******************************************************
+ok: [localhost]
+
+TASK [Créer le secret Redis] ***************************************************
+ok: [localhost]
+
+TASK [Déployer Redis (StatefulSet) et attendre qu'il soit prêt] ****************
+ok: [localhost]
+
+TASK [Appliquer les manifests et attendre la fin du rolling update] ************
+ok: [localhost]
+
+TASK [Chercher un pod de la nouvelle version] **********************************
+ok: [localhost]
+
+TASK [Smoke test depuis le cluster (via le Service, version attendue)] *********
+ok: [localhost]
+
+TASK [Résultat] ****************************************************************
+ok: [localhost] => {
+    "msg": "staging OK : {'app': 'legeni-webapp', 'env': 'staging', 'hostname': 'webapp-5c4854bcc-rlrf9', 'version': '1.0.0-1'}"
+}
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=11   changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
