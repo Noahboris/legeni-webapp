@@ -14,8 +14,8 @@ pipeline {
 
     environment {
         IMAGE          = 'noahboris/legeni-webapp'
-        TEST_CONTAINER = "webapp-ci-${env.BUILD_NUMBER}"
-        CI_NETWORK     = "ci-net-${env.BUILD_NUMBER}"
+        TEST_CONTAINER = "webapp-${env.BUILD_TAG}"
+        CI_NETWORK     = "net-${env.BUILD_TAG}"
     }
 
     stages {
