@@ -6,3 +6,6 @@ jenkins_port: 8080
 jenkins_admin_password: "{{ vault_jenkins_admin_password }}"
 jenkins_registry_username: "{{ vault_registry_username }}"
 jenkins_registry_token: "{{ vault_registry_token }}"
+jenkins_github_username: Noahboris
+jenkins_github_token: "{{ vault_github_token }}"
+jenkins_smee_url: "{{ vault_smee_url }}"

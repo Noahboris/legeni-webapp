@@ -1,5 +1,6 @@
 ---
-# Provisionne une machine vierge : Docker + Jenkins (image du TP 3.1) + Minikube.
+# Provisionne une machine vierge : Docker + Minikube + Jenkins (image du TP 3.1).
+# Minikube passe avant Jenkins : Jenkins rejoint le réseau Docker de Minikube.
 # Usage : cd ansible && ansible-playbook provision.yml --ask-become-pass
 - name: Provisionner la machine CI/CD
   hosts: cible
@@ -26,7 +27,7 @@
   roles:
     - role: docker
       tags: [docker]
-    - role: jenkins
-      tags: [jenkins]
     - role: minikube
       tags: [minikube]
+    - role: jenkins
+      tags: [jenkins]
