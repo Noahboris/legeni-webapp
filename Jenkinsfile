@@ -156,7 +156,7 @@ pipeline {
                     sh '''
                         cd ansible
                         export ANSIBLE_VAULT_PASSWORD_FILE="$VAULT_FILE"
-                        ansible-playbook deploy.yml -e target_env=staging -e app_version=$TAG
+                        ansible-playbook deploy.yml -e target_env=staging -e app_version=$TAG -e ansible_python_interpreter=/opt/ansible/bin/python3
                     '''
                 }
             }
@@ -192,7 +192,7 @@ pipeline {
                     sh '''
                         cd ansible
                         export ANSIBLE_VAULT_PASSWORD_FILE="$VAULT_FILE"
-                        ansible-playbook deploy.yml -e target_env=prod -e app_version=$TAG
+                        ansible-playbook deploy.yml -e target_env=prod -e app_version=$TAG -e ansible_python_interpreter=/opt/ansible/bin/python3
                     '''
                 }
             }
