@@ -1,13 +1,15 @@
-// Lot 4 : intégration continue.
-//   qualité (4 contrôles en parallèle) -> build -> test d'acceptance -> scan Trivy -> push (main uniquement)
+// Lots 4 et 5 : intégration puis déploiement continus.
+//   qualité (4 contrôles en parallèle) -> build -> test d'acceptance -> scan Trivy
+//   -> push -> déploiement staging -> validation humaine -> déploiement prod   (push et déploiements : main uniquement)
 // Aucun secret dans ce fichier : uniquement des credentials Jenkins
-//   registry-credentials (Docker Hub), ansible-vault-pass (coffre Ansible).
+//   registry-credentials (Docker Hub), ansible-vault-pass (coffre Ansible),
+//   kubeconfig (accès au cluster), discord-webhook (notification d'échec).
 pipeline {
     agent any
 
     options {
         timestamps()
-        timeout(time: 30, unit: 'MINUTES')
+        timeout(time: 60, unit: 'MINUTES')
         buildDiscarder(logRotator(numToKeepStr: '15'))
         disableConcurrentBuilds()
     }
@@ -140,6 +142,61 @@ pipeline {
                 }
             }
         }
+
+        stage('Déploiement staging') {
+            when {
+                allOf {
+                    branch 'main'
+                    not { changeRequest() }
+                }
+            }
+            steps {
+                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG'),
+                                 file(credentialsId: 'ansible-vault-pass', variable: 'VAULT_FILE')]) {
+                    sh '''
+                        cd ansible
+                        export ANSIBLE_VAULT_PASSWORD_FILE="$VAULT_FILE"
+                        ansible-playbook deploy.yml -e target_env=staging -e app_version=$TAG
+                    '''
+                }
+            }
+        }
+
+        stage('Validation production') {
+            when {
+                allOf {
+                    branch 'main'
+                    not { changeRequest() }
+                }
+            }
+            steps {
+                timeout(time: 30, unit: 'MINUTES') {
+                    input id: 'validation-prod',
+                          message: "Staging ${env.TAG} est déployé (http://192.168.49.2:30081). Vérifie-le, puis valide le passage en production.",
+                          ok: 'Déployer en production',
+                          submitter: 'admin'
+                }
+            }
+        }
+
+        stage('Déploiement production') {
+            when {
+                allOf {
+                    branch 'main'
+                    not { changeRequest() }
+                }
+            }
+            steps {
+                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG'),
+                                 file(credentialsId: 'ansible-vault-pass', variable: 'VAULT_FILE')]) {
+                    sh '''
+                        cd ansible
+                        export ANSIBLE_VAULT_PASSWORD_FILE="$VAULT_FILE"
+                        ansible-playbook deploy.yml -e target_env=prod -e app_version=$TAG
+                    '''
+                }
+            }
+        }
     }
 
     post {
@@ -152,6 +209,13 @@ pipeline {
         }
         failure {
             echo "Échec du pipeline : consultez l'étape en rouge"
+            withCredentials([string(credentialsId: 'discord-webhook', variable: 'DISCORD_URL')]) {
+                sh '''
+                    curl -sS -H "Content-Type: application/json" \
+                        -d "{\\"content\\":\\":x: Échec du pipeline ${JOB_NAME} #${BUILD_NUMBER} (version ${TAG:-inconnue}) : ${BUILD_URL}\\"}" \
+                        "$DISCORD_URL" || true
+                '''
+            }
         }
     }
 }
